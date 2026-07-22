@@ -306,8 +306,8 @@ PlasmoidItem {
     Notification {
         id: completionNotification
 
-        componentName: "plasma_workspace"
-        eventId: "notification"
+        componentName: "plasma_applet_timer"
+        eventId: "timerFinished"
         iconName: "chronometer"
         flags: Notification.Persistent | Notification.SkipGrouping
         urgency: Notification.HighUrgency

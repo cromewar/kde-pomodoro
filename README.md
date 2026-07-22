@@ -33,7 +33,7 @@ Then right-click your panel, choose **Enter Edit Mode** → **Add Widgets**, sea
 - Configurable number of focus sessions before a long break
 - Start, pause, restart, and skip controls
 - Daily Pomodoro count with automatic midnight reset and a manual reset action
-- Persistent Plasma notifications with an action to start the next interval
+- Audible Plasma notifications with an action to start the next interval
 - Timer deadline and cycle state preserved across Plasma shell restarts
 - Native Plasma styling that follows your color scheme
 
