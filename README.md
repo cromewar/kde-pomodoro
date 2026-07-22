@@ -2,6 +2,14 @@
 
 A native Plasma 6 panel widget that keeps your current focus and live Pomodoro countdown one click away.
 
+### Compact panel
+
+<p align="center">
+  <img src="screenshots/pomodoro-panel.png" alt="Pomodoro Focus compact horizontal panel layout showing progress, countdown, daily count, and focus description" width="480">
+</p>
+
+### Popup controls and settings
+
 <p align="center">
   <img src="screenshots/pomodoro-focus.png" alt="Pomodoro Focus popup showing the timer, current focus, session progress, controls, and interval settings" width="520">
 </p>
