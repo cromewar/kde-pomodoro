@@ -11,6 +11,8 @@ KCM.SimpleKCM {
     property alias cfg_shortBreakMinutes: shortBreakMinutes.value
     property alias cfg_longBreakMinutes: longBreakMinutes.value
     property alias cfg_sessionsUntilLongBreak: sessionsUntilLongBreak.value
+    property alias cfg_autoStartBreaks: autoStartBreaks.checked
+    property alias cfg_autoStartFocus: autoStartFocus.checked
 
     Kirigami.FormLayout {
         anchors.left: parent.left
@@ -41,6 +43,24 @@ KCM.SimpleKCM {
             id: longBreakMinutes
 
             Kirigami.FormData.label: i18n("Long break:")
+        }
+
+        Kirigami.Separator {
+            Kirigami.FormData.isSection: true
+            Kirigami.FormData.label: i18n("Behaviour")
+        }
+
+        QQC2.CheckBox {
+            id: autoStartBreaks
+
+            Kirigami.FormData.label: i18n("Auto-start:")
+            text: i18n("Start breaks automatically")
+        }
+
+        QQC2.CheckBox {
+            id: autoStartFocus
+
+            text: i18n("Start focus intervals automatically")
         }
 
         QQC2.Label {

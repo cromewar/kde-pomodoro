@@ -32,6 +32,7 @@ Then right-click your panel, choose **Enter Edit Mode** → **Add Widgets**, sea
 - Focus, short-break, and long-break durations set in the widget settings dialog
 - Configurable number of focus sessions before a long break
 - Start, pause, restart, and skip controls in the popup, mirrored in the right-click menu
+- Optional auto-start of breaks and of focus intervals, toggled independently in the settings dialog
 - Daily Pomodoro count with automatic midnight reset, plus a manual reset in the right-click menu
 - Audible Plasma notifications with an action to start the next interval
 - Timer deadline and cycle state preserved across Plasma shell restarts

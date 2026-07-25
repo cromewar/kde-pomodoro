@@ -15,6 +15,8 @@ PlasmoidItem {
     readonly property int longBreakMinutes: Math.max(1, Plasmoid.configuration.longBreakMinutes)
     readonly property int sessionsUntilLongBreak: Math.max(1, Plasmoid.configuration.sessionsUntilLongBreak)
     readonly property string focusDescription: Plasmoid.configuration.focusDescription
+    readonly property bool autoStartBreaks: Plasmoid.configuration.autoStartBreaks
+    readonly property bool autoStartFocus: Plasmoid.configuration.autoStartFocus
 
     property string phase: "focus"
     property bool isRunning: false
@@ -188,10 +190,10 @@ PlasmoidItem {
     }
 
     function skipInterval() {
-        moveToNextPhase(false);
+        moveToNextPhase(false, false);
     }
 
-    function moveToNextPhase(countCompletedFocus) {
+    function moveToNextPhase(countCompletedFocus, allowAutoStart) {
         const finishedPhase = phase;
 
         if (finishedPhase === "focus") {
@@ -217,6 +219,10 @@ PlasmoidItem {
 
         if (countCompletedFocus) {
             showCompletionNotification(finishedPhase);
+        }
+
+        if (allowAutoStart && (phase === "focus" ? autoStartFocus : autoStartBreaks)) {
+            startTimer();
         }
     }
 
@@ -301,7 +307,7 @@ PlasmoidItem {
                 root.remainingSeconds = nextRemaining;
             }
             if (nextRemaining <= 0) {
-                root.moveToNextPhase(true);
+                root.moveToNextPhase(true, true);
             }
         }
     }
@@ -368,7 +374,7 @@ PlasmoidItem {
             persistRuntime();
         } else if (Plasmoid.configuration.timerRunning && deadlineMs > 0) {
             remainingSeconds = 0;
-            moveToNextPhase(true);
+            moveToNextPhase(true, false);
         } else {
             isRunning = false;
             deadlineMs = 0;
