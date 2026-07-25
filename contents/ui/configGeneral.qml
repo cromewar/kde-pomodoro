@@ -14,9 +14,60 @@ KCM.SimpleKCM {
     property alias cfg_autoStartBreaks: autoStartBreaks.checked
     property alias cfg_autoStartFocus: autoStartFocus.checked
 
+    readonly property PresetTable presetTable: PresetTable {}
+    // Derived from the four editors below, not from a stored key, and derived
+    // from the *staged* values rather than Plasmoid.configuration so the combo
+    // box tracks edits the user has not applied yet.
+    readonly property int activePresetIndex: presetTable.matchingIndex(
+        focusMinutes.value,
+        shortBreakMinutes.value,
+        longBreakMinutes.value,
+        sessionsUntilLongBreak.value)
+    readonly property int customIndex: presetTable.list.length
+
     Kirigami.FormLayout {
         anchors.left: parent.left
         anchors.right: parent.right
+
+        QQC2.ComboBox {
+            id: presetSelector
+
+            Kirigami.FormData.label: i18n("Preset:")
+            // "Custom" is not a preset, it is the name for "these four values
+            // match none of them". It is listed so the box has something honest
+            // to show, and selecting it deliberately does nothing: there is no
+            // set of durations called Custom to apply.
+            model: page.presetTable.list.map(preset => preset.name)
+                .concat([i18nc("No preset matches the current durations", "Custom")])
+            currentIndex: page.activePresetIndex >= 0 ? page.activePresetIndex : page.customIndex
+
+            // `onActivated`, never `onCurrentIndexChanged`. This is not style.
+            // The binding above rewrites currentIndex whenever a duration
+            // changes, and `onCurrentIndexChanged` cannot tell that write apart
+            // from a user selection, so it would apply a preset in response to
+            // its own effect and fight anyone editing a spin box. `onActivated`
+            // fires only for user selection — the same rule DurationEditor
+            // follows with `onValueModified`.
+            onActivated: index => {
+                if (index >= 0 && index < page.presetTable.list.length) {
+                    const preset = page.presetTable.list[index];
+                    focusMinutes.value = preset.focusMinutes;
+                    shortBreakMinutes.value = preset.shortBreakMinutes;
+                    longBreakMinutes.value = preset.longBreakMinutes;
+                    sessionsUntilLongBreak.value = preset.sessionsUntilLongBreak;
+                }
+                // Selecting "Custom", or re-selecting the preset already in
+                // effect, leaves the durations untouched, so `activePresetIndex`
+                // never re-emits and the binding never re-evaluates to undo the
+                // combo box's own internal write. Re-arm it — through the id,
+                // because a bare `currentIndex = ...` in a handler is a plain
+                // JavaScript assignment that invents a variable rather than
+                // writing the property.
+                presetSelector.currentIndex = Qt.binding(() => page.activePresetIndex >= 0
+                    ? page.activePresetIndex
+                    : page.customIndex);
+            }
+        }
 
         DurationEditor {
             id: focusMinutes

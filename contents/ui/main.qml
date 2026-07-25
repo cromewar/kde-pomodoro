@@ -18,6 +18,14 @@ PlasmoidItem {
     readonly property bool autoStartBreaks: Plasmoid.configuration.autoStartBreaks
     readonly property bool autoStartFocus: Plasmoid.configuration.autoStartFocus
 
+    readonly property PresetTable presetTable: PresetTable {}
+    readonly property var presets: presetTable.list
+    // Derived, never stored — see PresetTable.matchingIndex(). Because it reads
+    // the mirrored config properties above, every consumer (menu check marks,
+    // the settings dialog's combo box) follows a duration change for free.
+    readonly property int activePresetIndex: presetTable.matchingIndex(
+        focusMinutes, shortBreakMinutes, longBreakMinutes, sessionsUntilLongBreak)
+
     property string phase: "focus"
     property bool isRunning: false
     property int remainingSeconds: 1500
@@ -135,7 +143,117 @@ PlasmoidItem {
         onTriggered: root.resetDailyCount()
     }
 
-    Plasmoid.contextualActions: [toggleAction, skipAction, resetAction, resetDailyCountAction]
+    // Switching the whole cycle is a monthly action, not a daily one, so it
+    // belongs on the free surface the right-click menu already provides rather
+    // than costing a permanent row in the popup.
+    //
+    // Flat entries with a shared prefix, not a "Presets ▸" submenu: the only
+    // submenu hook `PlasmaCore.Action` has is its `menu` property, and that is
+    // typed `QMenu *` — a QWidget the QML engine does not export as a creatable
+    // type (corebindingsplugin.qmltypes exports `Action` and `ActionGroup`;
+    // `QMenu` appears there only as an unexported prototype). The one in-tree
+    // applet with a submenu, folderview, hands its action a QMenu built by a
+    // C++ plugin. A pure-QML plasmoid has no equivalent.
+    property PlasmaCore.Action presetSeparatorAction: PlasmaCore.Action {
+        isSeparator: true
+    }
+
+    property PlasmaCore.Action classicPresetAction: PlasmaCore.Action {
+        id: classicPreset
+
+        text: root.presetActionText(0)
+        checkable: true
+        checked: root.activePresetIndex === 0
+        // Re-triggering the already-checked entry makes QAction toggle `checked`
+        // off on its way to emitting triggered(). The durations do not change,
+        // so `activePresetIndex` never re-emits and the binding is never
+        // re-evaluated to put the mark back — restore it explicitly.
+        //
+        // Through the id, never a bare `checked = ...`: an unqualified
+        // assignment in a handler is a plain JavaScript assignment that invents
+        // a variable instead of writing the property, so the mark silently
+        // stays off. Unqualified *reads* resolve through the scope chain and
+        // hide this.
+        onTriggered: {
+            root.applyPreset(0);
+            classicPreset.checked = Qt.binding(() => root.activePresetIndex === 0);
+        }
+    }
+
+    property PlasmaCore.Action deepWorkPresetAction: PlasmaCore.Action {
+        id: deepWorkPreset
+
+        text: root.presetActionText(1)
+        checkable: true
+        checked: root.activePresetIndex === 1
+        onTriggered: {
+            root.applyPreset(1);
+            deepWorkPreset.checked = Qt.binding(() => root.activePresetIndex === 1);
+        }
+    }
+
+    property PlasmaCore.Action longHaulPresetAction: PlasmaCore.Action {
+        id: longHaulPreset
+
+        text: root.presetActionText(2)
+        checkable: true
+        checked: root.activePresetIndex === 2
+        onTriggered: {
+            root.applyPreset(2);
+            longHaulPreset.checked = Qt.binding(() => root.activePresetIndex === 2);
+        }
+    }
+
+    Plasmoid.contextualActions: [
+        toggleAction,
+        skipAction,
+        resetAction,
+        resetDailyCountAction,
+        presetSeparatorAction,
+        classicPresetAction,
+        deepWorkPresetAction,
+        longHaulPresetAction
+    ]
+
+    // The three durations are spelled out because a preset name alone ("Deep
+    // work") says nothing about what it is going to do to the timer, and the
+    // menu is the only place these entries are ever seen.
+    function presetActionText(index) {
+        const preset = presets[index];
+        return i18nc("@action:inmenu %1 is a preset name, %2/%3/%4 are focus, short break and long break minutes",
+            "Preset: %1 (%2/%3/%4 min)",
+            preset.name,
+            preset.focusMinutes,
+            preset.shortBreakMinutes,
+            preset.longBreakMinutes);
+    }
+
+    function applyPreset(index) {
+        if (index < 0 || index >= presets.length) {
+            return;
+        }
+        const preset = presets[index];
+
+        Plasmoid.configuration.focusMinutes = preset.focusMinutes;
+        Plasmoid.configuration.shortBreakMinutes = preset.shortBreakMinutes;
+        Plasmoid.configuration.longBreakMinutes = preset.longBreakMinutes;
+        Plasmoid.configuration.sessionsUntilLongBreak = preset.sessionsUntilLongBreak;
+        // One flush for the whole preset. The per-setting setters below each
+        // call writeConfig() themselves, so routing through them would hit the
+        // config file four times for a single menu click.
+        Plasmoid.configuration.writeConfig();
+
+        // A preset can shrink the cycle (4 focuses -> 2). With three already
+        // banked, the popup's pips would render every dot saturated and the
+        // very next focus would hand out a long break. `focusesSinceLongBreak`
+        // is runtime state rather than config, so it is clamped here and
+        // flushed through persistRuntime() — not the writeConfig() above.
+        const clamped = Math.min(focusesSinceLongBreak, preset.sessionsUntilLongBreak);
+        if (clamped !== focusesSinceLongBreak) {
+            focusesSinceLongBreak = clamped;
+            persistRuntime();
+        }
+    }
 
     function durationSecondsForPhase(targetPhase) {
         if (targetPhase === "longBreak") {

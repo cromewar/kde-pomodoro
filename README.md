@@ -32,6 +32,7 @@ Then right-click your panel, choose **Enter Edit Mode** → **Add Widgets**, sea
 - Editable current-focus description in the popup, tooltip, and horizontal panel
 - Focus, short-break, and long-break durations set in the widget settings dialog
 - Configurable number of focus sessions before a long break
+- Built-in interval presets — Classic (25/5/15), Deep work (50/10/30), and Long haul (90/20/30) — switchable from the right-click menu or the settings dialog
 - Start, pause, restart, and skip controls in the popup, mirrored in the right-click menu
 - Optional auto-start of breaks and of focus intervals, toggled independently in the settings dialog
 - Daily Pomodoro count with automatic midnight reset, plus a manual reset in the right-click menu
