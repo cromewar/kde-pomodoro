@@ -451,6 +451,15 @@ PlasmoidItem {
     function showCompletionNotification(finishedPhase) {
         pendingNotificationPhase = phase;
 
+        // The event id is assigned per send, exactly like `title` and `text`
+        // below, so that the two phases can carry different sounds without a
+        // second Notification object. KNotification builds its configuration
+        // from `componentName`/`eventId` inside sendEvent() — nothing is cached
+        // from the previous send — so a reused object follows the change.
+        completionNotification.eventId = finishedPhase === "focus"
+            ? "focusFinished"
+            : "breakFinished";
+
         if (finishedPhase === "focus") {
             completionNotification.title = focusDescription.length > 0
                 ? i18n("Focus complete: %1", focusDescription)
@@ -544,8 +553,20 @@ PlasmoidItem {
     Notification {
         id: completionNotification
 
-        componentName: "plasma_applet_timer"
-        eventId: "timerFinished"
+        // This widget's own notification component, shipped as
+        // notifications/org.kde.plasma.pomodoro.notifyrc. KNotifications only
+        // reads knotifications6/ under the XDG data dirs, and a plasmoid
+        // package installs to plasma/plasmoids/, so install.sh copies the file
+        // into ~/.local/share/knotifications6/ — see the README.
+        //
+        // Previously this pointed at "plasma_applet_timer"/"timerFinished",
+        // the stock Timer applet's component: sound and urgency changes made
+        // for one applied to the other, and one event could not distinguish
+        // the end of a focus interval from the end of a break.
+        //
+        // `eventId` is deliberately absent here — showCompletionNotification()
+        // sets it per send.
+        componentName: "org.kde.plasma.pomodoro"
         iconName: "chronometer"
         flags: Notification.Persistent | Notification.SkipGrouping
         urgency: Notification.HighUrgency

@@ -24,6 +24,8 @@ curl -fsSL https://raw.githubusercontent.com/cromewar/kde-pomodoro/main/install.
 
 Then right-click your panel, choose **Enter Edit Mode** → **Add Widgets**, search for **Pomodoro Focus**, and drag it onto any panel. Run the same command again whenever you want to update the widget.
 
+The installer also copies the widget's notification events into `~/.local/share/knotifications6/`, which is what makes the end-of-interval notifications appear at all — see [Notification events](#notification-events-required).
+
 ## Features
 
 - Live countdown and circular progress indicator directly on horizontal or vertical panels
@@ -37,9 +39,31 @@ Then right-click your panel, choose **Enter Edit Mode** → **Add Widgets**, sea
 - Optional auto-start of breaks and of focus intervals, toggled independently in the settings dialog
 - Daily Pomodoro count with automatic midnight reset, plus a manual reset in the right-click menu
 - Lifetime focus total alongside today's count in the tooltip
-- Audible Plasma notifications with an action to start the next interval
+- Separate Plasma notifications for the end of a focus interval and the end of a break, each with its own sound and an action to start the next interval, all configurable in **System Settings → Notifications → Pomodoro Focus**
 - Timer deadline and cycle state preserved across Plasma shell restarts
 - Native Plasma styling that follows your color scheme
+
+## Notification events (required)
+
+> [!IMPORTANT]
+> **The widget's notifications do not work until `org.kde.plasma.pomodoro.notifyrc` is installed into `~/.local/share/knotifications6/`.**
+> Without that file, KNotification finds no event configuration and drops the notification silently: no popup, no sound, nothing in the notification history — the interval just ends.
+>
+> The `install.sh` one-liner above does this for you. **Every other installation route does not**, including `kpackagetool6 --install`, the KDE Store, and Plasma's "Get New Widgets" downloader, because a plasmoid package is installed into `~/.local/share/plasma/plasmoids/` and KNotifications never looks there.
+>
+> After installing the widget by any of those routes, run:
+>
+> ```sh
+> mkdir -p ~/.local/share/knotifications6
+> cp ~/.local/share/plasma/plasmoids/org.kde.plasma.pomodoro/notifications/org.kde.plasma.pomodoro.notifyrc \
+>    ~/.local/share/knotifications6/
+> ```
+>
+> (From a clone, copy `notifications/org.kde.plasma.pomodoro.notifyrc` instead.) Repeat this after any update that changes the file.
+
+Once it is in place, **System Settings → Notifications → Application settings** lists **Pomodoro Focus** with two independently configurable events — *Focus interval finished* and *Break finished* — where you can change their sounds, popup behaviour, and urgency.
+
+Version 2.0.0 moved these notifications off the stock **Timer** applet's `plasma_applet_timer` event, which the widget previously borrowed. If you had customised the Timer applet's notification sound, this widget no longer follows that customisation: configure **Pomodoro Focus** instead.
 
 ## Manual install
 
@@ -49,18 +73,22 @@ Clone the repository and install the package:
 git clone https://github.com/cromewar/kde-pomodoro.git
 cd kde-pomodoro
 kpackagetool6 --type Plasma/Applet --install .
+mkdir -p ~/.local/share/knotifications6
+cp notifications/org.kde.plasma.pomodoro.notifyrc ~/.local/share/knotifications6/
 ```
 
 To upgrade a manual installation:
 
 ```sh
 kpackagetool6 --type Plasma/Applet --upgrade .
+cp notifications/org.kde.plasma.pomodoro.notifyrc ~/.local/share/knotifications6/
 ```
 
 To uninstall:
 
 ```sh
 kpackagetool6 --type Plasma/Applet --remove org.kde.plasma.pomodoro
+rm -f ~/.local/share/knotifications6/org.kde.plasma.pomodoro.notifyrc
 ```
 
 ## Development
