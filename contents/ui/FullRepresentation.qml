@@ -130,7 +130,9 @@ Item {
 
                 QQC2.Label {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: full.controller.isRunning ? i18n("Stay with it") : i18n("Ready when you are")
+                    text: full.controller.isRunning
+                        ? i18n("Ends %1", full.controller.estimatedFinishTime)
+                        : i18n("Ready when you are")
                     color: Kirigami.Theme.disabledTextColor
                 }
             }

@@ -28,6 +28,7 @@ Then right-click your panel, choose **Enter Edit Mode** → **Add Widgets**, sea
 
 - Live countdown and circular progress indicator directly on horizontal or vertical panels
 - Focus, short-break, and long-break phases
+- Estimated finish time for the running interval, shown in the popup and the tooltip in your local 12- or 24-hour format
 - Editable current-focus description in the popup, tooltip, and horizontal panel
 - Focus, short-break, and long-break durations set in the widget settings dialog
 - Configurable number of focus sessions before a long break

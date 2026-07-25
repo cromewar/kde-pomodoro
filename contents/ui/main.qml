@@ -40,6 +40,17 @@ PlasmoidItem {
     readonly property color accentColor: phase === "focus"
         ? "#e85d5d"
         : (phase === "longBreak" ? "#7765d8" : "#2f9e78")
+    // Deliberately derived from `deadlineMs` alone rather than `remainingSeconds`,
+    // so it is recomputed once per interval instead of four times a second. There
+    // is no deadline while paused, and `Date.now()` is not reactive, so a paused
+    // estimate would be stale seconds after it was rendered: return nothing.
+    // `toLocaleTimeString(Qt.locale(), ...)` rather than `Qt.formatTime(...)`:
+    // the latter formats with the application's default QLocale, which Plasma
+    // leaves at "C" (a 24-hour "HH:mm:ss"), while `Qt.locale()` is the region the
+    // user actually configured and decides 12- versus 24-hour on their behalf.
+    readonly property string estimatedFinishTime: isRunning && deadlineMs > 0
+        ? new Date(deadlineMs).toLocaleTimeString(Qt.locale(), Locale.ShortFormat)
+        : ""
     readonly property string notificationActionLabel: pendingNotificationPhase === "focus"
         ? i18n("Start focus")
         : (pendingNotificationPhase === "longBreak"
@@ -52,10 +63,11 @@ PlasmoidItem {
     Plasmoid.title: i18n("Pomodoro Focus")
 
     toolTipMainText: focusDescription.length > 0 ? focusDescription : phaseName
-    toolTipSubText: i18nc("Timer phase, remaining time, state and daily count", "%1 · %2 · %3 · %4 today",
+    toolTipSubText: i18nc("Timer phase, remaining time, finish time while running or the paused state, and daily count",
+        "%1 · %2 · %3 · %4 today",
         phaseName,
         formattedTime,
-        isRunning ? i18n("Running") : i18n("Paused"),
+        isRunning ? i18n("Ends %1", estimatedFinishTime) : i18n("Paused"),
         completedFocusSessionsToday)
     toolTipTextFormat: Text.PlainText
 
