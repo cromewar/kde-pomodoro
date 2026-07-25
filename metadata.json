@@ -13,7 +13,7 @@
         "Id": "org.kde.plasma.pomodoro",
         "License": "MIT",
         "Name": "Pomodoro Focus",
-        "Version": "1.5.0"
+        "Version": "1.6.0"
     },
     "X-Plasma-API-Minimum-Version": "6.0"
 }

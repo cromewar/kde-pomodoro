@@ -27,6 +27,10 @@ PlasmoidItem {
     property int completedFocusSessions: 0
     property int completedFocusSessionsToday: 0
     property string dailyCounterDate: ""
+    // Finished days as compact ["YYYY-MM-DD", count] pairs, oldest first, capped
+    // at 90. Storage only for now: nothing renders this yet. The array is sparse
+    // by design — a day the widget never saw simply has no entry.
+    property var dailyHistory: []
     property string pendingNotificationPhase: ""
     property bool initialized: false
 
@@ -137,6 +141,7 @@ PlasmoidItem {
         Plasmoid.configuration.completedFocusSessions = completedFocusSessions;
         Plasmoid.configuration.completedFocusSessionsToday = completedFocusSessionsToday;
         Plasmoid.configuration.dailyCounterDate = dailyCounterDate;
+        Plasmoid.configuration.dailyHistory = JSON.stringify(dailyHistory);
         Plasmoid.configuration.writeConfig();
     }
 
@@ -147,11 +152,41 @@ PlasmoidItem {
         return year + "-" + month + "-" + day;
     }
 
+    // Records a finished day. Days with nothing to show are not recorded, so the
+    // stored array stays sparse: missing dates mean zero and must never be
+    // backfilled with synthetic entries. Never called from the 250ms tick timer.
+    function archiveDay(dateKey, count) {
+        if (!dateKey || count <= 0) {
+            return;
+        }
+
+        // `localDateKey()` is local-time based, so a DST transition or westward
+        // travel can hand back a date key that is already stored. Replace the
+        // existing entry in place instead of appending a duplicate.
+        const entries = dailyHistory.slice();
+        let replaced = false;
+        for (let i = 0; i < entries.length; ++i) {
+            if (entries[i] && entries[i][0] === dateKey) {
+                entries[i] = [dateKey, count];
+                replaced = true;
+                break;
+            }
+        }
+        if (!replaced) {
+            entries.push([dateKey, count]);
+        }
+
+        dailyHistory = entries.slice(-90);
+    }
+
     function ensureDailyCounterCurrent() {
         const today = localDateKey(new Date());
         if (dailyCounterDate === today) {
             return false;
         }
+        // Archive the *outgoing* day first: the next two lines destroy the very
+        // values being recorded.
+        archiveDay(dailyCounterDate, completedFocusSessionsToday);
         dailyCounterDate = today;
         completedFocusSessionsToday = 0;
         persistRuntime();
@@ -159,6 +194,11 @@ PlasmoidItem {
     }
 
     function resetDailyCount() {
+        // Deliberately does NOT archive. This is the user's "I miscounted, clear
+        // it" action, not a day boundary — the discarded count is wrong data the
+        // user asked to be rid of, so writing it into the permanent history
+        // would defeat the purpose. Please do not "fix" this by adding an
+        // archiveDay() call here.
         dailyCounterDate = localDateKey(new Date());
         completedFocusSessionsToday = 0;
         persistRuntime();
@@ -354,6 +394,22 @@ PlasmoidItem {
     }
 
     Component.onCompleted: {
+        // Must run before any other restore logic and, critically, before
+        // `initialized = true` — persistRuntime() is a no-op until then, so the
+        // first write back always carries the real stored history. Parsing any
+        // later would let that first persist clobber it with an empty array.
+        // A corrupt or hand-edited value degrades to empty rather than throwing
+        // out of Component.onCompleted and leaving the widget half-restored.
+        dailyHistory = [];
+        try {
+            const savedHistory = JSON.parse(Plasmoid.configuration.dailyHistory || "[]");
+            if (Array.isArray(savedHistory)) {
+                dailyHistory = savedHistory;
+            }
+        } catch (error) {
+            dailyHistory = [];
+        }
+
         const savedPhase = Plasmoid.configuration.currentPhase;
         phase = savedPhase === "shortBreak" || savedPhase === "longBreak" ? savedPhase : "focus";
         focusesSinceLongBreak = Math.max(0, Plasmoid.configuration.focusesSinceLongBreak);
@@ -364,6 +420,12 @@ PlasmoidItem {
             dailyCounterDate = today;
             completedFocusSessionsToday = Math.max(0, Plasmoid.configuration.completedFocusSessionsToday);
         } else {
+            // The common rollover path in practice: the shell usually restarts
+            // overnight, and the 30-second poll timer only catches a boundary
+            // that happens while the shell is actually running. Archive the
+            // saved day from the stored values before overwriting them.
+            archiveDay(Plasmoid.configuration.dailyCounterDate,
+                Math.max(0, Plasmoid.configuration.completedFocusSessionsToday));
             dailyCounterDate = today;
             completedFocusSessionsToday = 0;
         }

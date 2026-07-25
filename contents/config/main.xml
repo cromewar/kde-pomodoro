@@ -55,5 +55,13 @@
     <entry name="dailyCounterDate" type="String">
       <default></default>
     </entry>
+    <!-- JSON array of ["YYYY-MM-DD", count] pairs, oldest first, capped at 90
+         entries. A String holding JSON rather than a StringList (KConfig comma
+         escaping is fragile) or LocalStorage (plasmashell's offline-storage
+         directory is shared process-wide, so two instances of this widget would
+         silently merge their histories). Same pragmatism as deadlineEpochMs. -->
+    <entry name="dailyHistory" type="String">
+      <default></default>
+    </entry>
   </group>
 </kcfg>
