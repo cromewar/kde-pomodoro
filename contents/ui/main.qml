@@ -101,12 +101,38 @@ PlasmoidItem {
     Plasmoid.title: i18n("Pomodoro Focus")
 
     toolTipMainText: focusDescription.length > 0 ? focusDescription : phaseName
-    toolTipSubText: i18nc("Timer phase, remaining time, finish time while running or the paused state, and daily count",
-        "%1 · %2 · %3 · %4 today",
-        phaseName,
-        formattedTime,
-        isRunning ? i18n("Ends %1", estimatedFinishTime) : i18n("Paused"),
-        completedFocusSessionsToday)
+    // Two lines, not five inline fields: line one is the state of the interval
+    // running right now, line two is how much has been banked. Plasma's
+    // DefaultToolTip caps its text column at `gridUnit * 20` and word-wraps, so
+    // a fifth inline field lands within a few pixels of that cap in English and
+    // wraps outright once translated — orphaning the last word onto a ragged
+    // second line the layout never intended. Splitting deliberately keeps both
+    // lines short, and puts the two counts side by side where they are actually
+    // comparable instead of separating them with the same "·" that divides the
+    // unrelated phase/time/finish fields.
+    //
+    // The lifetime line is dropped entirely until there is something to report.
+    // Testing `completedFocusSessions` alone is sufficient: both counters are
+    // incremented in the same branch of moveToNextPhase(), so today's count can
+    // never run ahead of the lifetime one, and a zero total means a fresh
+    // install with nothing to say rather than a counter that merely reset.
+    toolTipSubText: {
+        const runState = isRunning ? i18n("Ends %1", estimatedFinishTime) : i18n("Paused");
+        if (completedFocusSessions <= 0) {
+            return i18nc("Tooltip subtext before any focus session has ever been completed: timer phase, remaining time, and finish time while running or the paused state",
+                "%1 · %2 · %3",
+                phaseName,
+                formattedTime,
+                runState);
+        }
+        return i18nc("Two-line tooltip subtext. Line one: timer phase, remaining time, and finish time while running or the paused state. Line two: focus sessions completed today, then the lifetime total. Keep the line break between them.",
+            "%1 · %2 · %3\n%4 today · %5 all time",
+            phaseName,
+            formattedTime,
+            runState,
+            completedFocusSessionsToday,
+            completedFocusSessions);
+    }
     toolTipTextFormat: Text.PlainText
 
     preferredRepresentation: Qt.application.name === "plasmawindowed"

@@ -36,6 +36,7 @@ Then right-click your panel, choose **Enter Edit Mode** → **Add Widgets**, sea
 - Start, pause, restart, and skip controls in the popup, mirrored in the right-click menu
 - Optional auto-start of breaks and of focus intervals, toggled independently in the settings dialog
 - Daily Pomodoro count with automatic midnight reset, plus a manual reset in the right-click menu
+- Lifetime focus total alongside today's count in the tooltip
 - Audible Plasma notifications with an action to start the next interval
 - Timer deadline and cycle state preserved across Plasma shell restarts
 - Native Plasma styling that follows your color scheme
