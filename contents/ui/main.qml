@@ -273,7 +273,11 @@ PlasmoidItem {
     }
 
     function setFocusDescription(value) {
-        Plasmoid.configuration.focusDescription = value.trim();
+        const normalized = value.trim();
+        if (Plasmoid.configuration.focusDescription === normalized) {
+            return;
+        }
+        Plasmoid.configuration.focusDescription = normalized;
         Plasmoid.configuration.writeConfig();
     }
 

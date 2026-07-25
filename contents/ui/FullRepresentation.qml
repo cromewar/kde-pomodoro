@@ -17,6 +17,13 @@ Item {
     Layout.preferredWidth: implicitWidth
     Layout.preferredHeight: implicitHeight
 
+    // The popup can be hidden without the field ever losing keyboard focus.
+    onVisibleChanged: {
+        if (!visible) {
+            focusField.commit();
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: Kirigami.Units.largeSpacing
@@ -148,25 +155,79 @@ Item {
                 font.letterSpacing: 0.6
             }
 
-            QQC2.TextField {
-                id: focusField
-
+            RowLayout {
                 Layout.fillWidth: true
-                text: full.controller.focusDescription
-                placeholderText: i18n("What are you focusing on?")
-                selectByMouse: true
-                maximumLength: 120
-                onTextEdited: descriptionCommit.restart()
-                onEditingFinished: {
-                    descriptionCommit.stop();
-                    full.controller.setFocusDescription(text);
+                spacing: Kirigami.Units.smallSpacing
+
+                QQC2.TextField {
+                    id: focusField
+
+                    // `text` is deliberately not bound to the controller. The stored
+                    // description is trimmed, and the config map re-emits its change
+                    // signal on every write, so a binding would swallow spaces and
+                    // send the cursor to the end while the user is still typing.
+                    readonly property string committedDescription: full.controller.focusDescription
+
+                    function commit() {
+                        descriptionCommit.stop();
+                        full.controller.setFocusDescription(text);
+                    }
+
+                    function revert() {
+                        descriptionCommit.stop();
+                        text = committedDescription;
+                        cursorPosition = text.length;
+                    }
+
+                    Layout.fillWidth: true
+                    placeholderText: i18n("What are you focusing on?")
+                    selectByMouse: true
+                    persistentSelection: true
+                    maximumLength: 120
+
+                    onTextEdited: descriptionCommit.restart()
+                    onEditingFinished: commit()
+                    onAccepted: {
+                        commit();
+                        // Show the normalised value once the user is done typing.
+                        text = committedDescription;
+                        cursorPosition = text.length;
+                    }
+                    // Follow external changes (config dialog, another instance) only
+                    // while this field is idle, so editing is never interrupted.
+                    onCommittedDescriptionChanged: {
+                        if (!activeFocus && text !== committedDescription) {
+                            text = committedDescription;
+                        }
+                    }
+
+                    Keys.onEscapePressed: event => {
+                        revert();
+                        event.accepted = true;
+                    }
+
+                    Component.onCompleted: text = committedDescription
+
+                    Timer {
+                        id: descriptionCommit
+
+                        interval: 600
+                        onTriggered: full.controller.setFocusDescription(focusField.text)
+                    }
                 }
 
-                Timer {
-                    id: descriptionCommit
-
-                    interval: 350
-                    onTriggered: full.controller.setFocusDescription(focusField.text)
+                QQC2.ToolButton {
+                    icon.name: "edit-clear"
+                    display: QQC2.AbstractButton.IconOnly
+                    text: i18n("Clear focus")
+                    visible: focusField.text.length > 0
+                    onClicked: {
+                        focusField.clear();
+                        focusField.commit();
+                        focusField.forceActiveFocus();
+                    }
+                    QQC2.ToolTip.visible: hovered
+                    QQC2.ToolTip.text: text
                 }
             }
         }
