@@ -25,7 +25,7 @@ QQC2.AbstractButton {
                 ? Qt.darker(button.controller.accentColor, 1.13)
                 : Qt.darker(button.controller.accentColor, 1.25))
         border.width: button.activeFocus ? 2 : 0
-        border.color: "white"
+        border.color: button.controller.accentForegroundColor
 
         Behavior on color {
             ColorAnimation { duration: Kirigami.Units.shortDuration }
@@ -47,12 +47,16 @@ QQC2.AbstractButton {
             Connections {
                 target: button.controller
                 function onIsRunningChanged() { playbackSymbol.requestPaint(); }
+                // A Canvas does not repaint when a colour it read last time
+                // changes, so a live colour-scheme switch would leave the glyph
+                // in the old foreground until something else invalidated it.
+                function onAccentForegroundColorChanged() { playbackSymbol.requestPaint(); }
             }
 
             onPaint: {
                 const ctx = getContext("2d");
                 ctx.clearRect(0, 0, width, height);
-                ctx.fillStyle = "white";
+                ctx.fillStyle = button.controller.accentForegroundColor;
                 if (button.controller.isRunning) {
                     const barWidth = width * 0.24;
                     const barHeight = height * 0.72;
@@ -72,7 +76,7 @@ QQC2.AbstractButton {
 
         QQC2.Label {
             text: button.text
-            color: "white"
+            color: button.controller.accentForegroundColor
             font.weight: Font.DemiBold
         }
 

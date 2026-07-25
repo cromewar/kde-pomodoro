@@ -41,9 +41,35 @@ PlasmoidItem {
     readonly property string phaseName: phase === "focus"
         ? i18n("Focus")
         : (phase === "longBreak" ? i18n("Long break") : i18n("Short break"))
+    // Phase colours come from the scheme's semantic status roles rather than
+    // fixed hex, so the widget follows the user's palette (including
+    // high-contrast schemes) instead of being the one thing in the panel that
+    // ignores it.
+    //
+    // `positiveTextColor` and `negativeTextColor` are the only two roles every
+    // scheme is *obliged* to keep mutually distinguishable — they carry
+    // success/error meaning — which makes them a far safer pair than a third
+    // independent root: `highlightColor` is the user's accent and can land
+    // straight on top of either. So the long break is the *same* "rest" root
+    // rotated a sixth of the way round the hue wheel (green -> steel blue under
+    // Breeze), keeping its saturation and lightness. The two break phases can
+    // then never collide whatever green the scheme chose, and all three phases
+    // end up with comparable contrast against the popup background.
+    readonly property color restColor: Kirigami.Theme.positiveTextColor
+    readonly property color longRestColor: Qt.hsla(
+        // "+ 1" first: an achromatic colour reports hslHue as -1.
+        (restColor.hslHue + 1 + 1 / 6) % 1,
+        restColor.hslSaturation,
+        restColor.hslLightness,
+        1)
     readonly property color accentColor: phase === "focus"
-        ? "#e85d5d"
-        : (phase === "longBreak" ? "#7765d8" : "#2f9e78")
+        ? Kirigami.Theme.negativeTextColor
+        : (phase === "longBreak" ? longRestColor : restColor)
+    // The scheme's designated "text drawn on a saturated background" colour.
+    // This is what the literal "white" in PlaybackButton was standing in for,
+    // except it stays legible when the accent is pale or the scheme is
+    // high-contrast.
+    readonly property color accentForegroundColor: Kirigami.Theme.highlightedTextColor
     // Deliberately derived from `deadlineMs` alone rather than `remainingSeconds`,
     // so it is recomputed once per interval instead of four times a second. There
     // is no deadline while paused, and `Date.now()` is not reactive, so a paused
