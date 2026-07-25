@@ -8,10 +8,10 @@ A native Plasma 6 panel widget that keeps your current focus and live Pomodoro c
   <img src="screenshots/pomodoro-panel.png" alt="Pomodoro Focus compact horizontal panel layout showing progress, countdown, daily count, and focus description" width="480">
 </p>
 
-### Popup controls and settings
+### Popup controls
 
 <p align="center">
-  <img src="screenshots/pomodoro-focus.png" alt="Pomodoro Focus popup showing the timer, current focus, session progress, controls, and interval settings" width="520">
+  <img src="screenshots/pomodoro-focus.png" alt="Pomodoro Focus popup showing the timer, current focus, session progress, and controls" width="520">
 </p>
 
 ## Quick install
@@ -29,10 +29,10 @@ Then right-click your panel, choose **Enter Edit Mode** → **Add Widgets**, sea
 - Live countdown and circular progress indicator directly on horizontal or vertical panels
 - Focus, short-break, and long-break phases
 - Editable current-focus description in the popup, tooltip, and horizontal panel
-- Configurable focus, short-break, and long-break durations
+- Focus, short-break, and long-break durations set in the widget settings dialog
 - Configurable number of focus sessions before a long break
-- Start, pause, restart, and skip controls
-- Daily Pomodoro count with automatic midnight reset and a manual reset action
+- Start, pause, restart, and skip controls in the popup, mirrored in the right-click menu
+- Daily Pomodoro count with automatic midnight reset, plus a manual reset in the right-click menu
 - Audible Plasma notifications with an action to start the next interval
 - Timer deadline and cycle state preserved across Plasma shell restarts
 - Native Plasma styling that follows your color scheme

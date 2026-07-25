@@ -85,7 +85,13 @@ PlasmoidItem {
         onTriggered: root.resetCurrentInterval()
     }
 
-    Plasmoid.contextualActions: [toggleAction, skipAction, resetAction]
+    property PlasmaCore.Action resetDailyCountAction: PlasmaCore.Action {
+        text: i18n("Reset today's count")
+        icon.name: "edit-reset"
+        onTriggered: root.resetDailyCount()
+    }
+
+    Plasmoid.contextualActions: [toggleAction, skipAction, resetAction, resetDailyCountAction]
 
     function durationSecondsForPhase(targetPhase) {
         if (targetPhase === "longBreak") {

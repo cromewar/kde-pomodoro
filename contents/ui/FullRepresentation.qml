@@ -11,9 +11,9 @@ Item {
     required property var controller
 
     implicitWidth: Kirigami.Units.gridUnit * 21
-    implicitHeight: Kirigami.Units.gridUnit * 29
+    implicitHeight: Kirigami.Units.gridUnit * 20
     Layout.minimumWidth: Kirigami.Units.gridUnit * 19
-    Layout.minimumHeight: Kirigami.Units.gridUnit * 26
+    Layout.minimumHeight: Kirigami.Units.gridUnit * 18
     Layout.preferredWidth: implicitWidth
     Layout.preferredHeight: implicitHeight
 
@@ -69,14 +69,6 @@ Item {
                     text: i18n("%1 today", full.controller.completedFocusSessionsToday)
                     color: Kirigami.Theme.textColor
                     font.weight: Font.DemiBold
-                }
-
-                QQC2.ToolButton {
-                    text: i18n("Reset")
-                    display: QQC2.AbstractButton.TextOnly
-                    onClicked: full.controller.resetDailyCount()
-                    QQC2.ToolTip.visible: hovered
-                    QQC2.ToolTip.text: i18n("Reset today's Pomodoro count. It also resets automatically at midnight.")
                 }
             }
         }
@@ -283,63 +275,6 @@ Item {
                 onClicked: full.controller.skipInterval()
                 QQC2.ToolTip.visible: hovered
                 QQC2.ToolTip.text: i18n("Move to the next interval")
-            }
-        }
-
-        Kirigami.Separator { Layout.fillWidth: true }
-
-        RowLayout {
-            Layout.fillWidth: true
-
-            QQC2.Label {
-                text: i18n("Timer settings")
-                font.weight: Font.DemiBold
-            }
-
-            Item { Layout.fillWidth: true }
-
-            QQC2.Label {
-                text: i18n("Changes apply to paused intervals")
-                color: Kirigami.Theme.disabledTextColor
-                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-            }
-        }
-
-        GridLayout {
-            Layout.fillWidth: true
-            columns: 2
-            columnSpacing: Kirigami.Units.largeSpacing
-            rowSpacing: Kirigami.Units.smallSpacing
-
-            QQC2.Label { text: i18n("Focus interval") }
-            DurationEditor {
-                Layout.alignment: Qt.AlignRight
-                value: full.controller.focusMinutes
-                onValueEdited: value => full.controller.setFocusMinutes(value)
-            }
-
-            QQC2.Label { text: i18n("Short break") }
-            DurationEditor {
-                Layout.alignment: Qt.AlignRight
-                value: full.controller.shortBreakMinutes
-                onValueEdited: value => full.controller.setShortBreakMinutes(value)
-            }
-
-            QQC2.Label { text: i18n("Focuses before long break") }
-            QQC2.SpinBox {
-                Layout.alignment: Qt.AlignRight
-                from: 1
-                to: 12
-                editable: true
-                value: full.controller.sessionsUntilLongBreak
-                onValueModified: full.controller.setSessionsUntilLongBreak(value)
-            }
-
-            QQC2.Label { text: i18n("Long break") }
-            DurationEditor {
-                Layout.alignment: Qt.AlignRight
-                value: full.controller.longBreakMinutes
-                onValueEdited: value => full.controller.setLongBreakMinutes(value)
             }
         }
 
