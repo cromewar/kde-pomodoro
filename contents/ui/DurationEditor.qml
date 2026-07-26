@@ -29,14 +29,18 @@ RowLayout {
     }
 
     QQC2.Label {
+        id: suffixLabel
+
         text: editor.suffix
         color: Kirigami.Theme.disabledTextColor
         Layout.preferredWidth: suffixWidth.width
 
+        // Measured off the label by id, not `parent`: TextMetrics is not an
+        // Item, so it has no visual parent and `parent.font` is undefined.
         TextMetrics {
             id: suffixWidth
 
-            font: parent.font
+            font: suffixLabel.font
             text: i18nc("Abbreviation for minutes", "min")
         }
     }
