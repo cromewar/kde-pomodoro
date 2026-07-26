@@ -349,21 +349,45 @@ Item {
             columnSpacing: Kirigami.Units.largeSpacing
             rowSpacing: Kirigami.Units.smallSpacing
 
-            QQC2.Label { text: i18n("Focus interval") }
+            QQC2.Label {
+                // fillWidth on the label column, not the editors: Layout.alignment
+                // only positions an item inside its own cell, and the editor
+                // column is exactly as wide as its content. Without a column
+                // that absorbs the slack it pools to the right of the editors
+                // instead of pushing them against the popup edge.
+                Layout.fillWidth: true
+                text: i18n("Focus interval")
+            }
             DurationEditor {
                 Layout.alignment: Qt.AlignRight
                 value: full.controller.focusMinutes
                 onValueEdited: value => full.controller.setFocusMinutes(value)
             }
 
-            QQC2.Label { text: i18n("Short break") }
+            QQC2.Label {
+                // fillWidth on the label column, not the editors: Layout.alignment
+                // only positions an item inside its own cell, and the editor
+                // column is exactly as wide as its content. Without a column
+                // that absorbs the slack it pools to the right of the editors
+                // instead of pushing them against the popup edge.
+                Layout.fillWidth: true
+                text: i18n("Short break")
+            }
             DurationEditor {
                 Layout.alignment: Qt.AlignRight
                 value: full.controller.shortBreakMinutes
                 onValueEdited: value => full.controller.setShortBreakMinutes(value)
             }
 
-            QQC2.Label { text: i18n("Focuses before long break") }
+            QQC2.Label {
+                // fillWidth on the label column, not the editors: Layout.alignment
+                // only positions an item inside its own cell, and the editor
+                // column is exactly as wide as its content. Without a column
+                // that absorbs the slack it pools to the right of the editors
+                // instead of pushing them against the popup edge.
+                Layout.fillWidth: true
+                text: i18n("Focuses before long break")
+            }
             // A DurationEditor with the suffix blanked rather than a bare
             // SpinBox: it keeps the "min" column's width, so this spin box lines
             // up with the three duration rows instead of sitting a word further
@@ -377,7 +401,15 @@ Item {
                 onValueEdited: value => full.controller.setSessionsUntilLongBreak(value)
             }
 
-            QQC2.Label { text: i18n("Long break") }
+            QQC2.Label {
+                // fillWidth on the label column, not the editors: Layout.alignment
+                // only positions an item inside its own cell, and the editor
+                // column is exactly as wide as its content. Without a column
+                // that absorbs the slack it pools to the right of the editors
+                // instead of pushing them against the popup edge.
+                Layout.fillWidth: true
+                text: i18n("Long break")
+            }
             DurationEditor {
                 Layout.alignment: Qt.AlignRight
                 value: full.controller.longBreakMinutes
