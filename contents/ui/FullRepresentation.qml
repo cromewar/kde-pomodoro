@@ -10,10 +10,18 @@ Item {
 
     required property var controller
 
+    // Separator, header and four spin box rows plus their spacing, measured at
+    // ~11 gridUnits. The popup has to ask for this outright: the only flexible
+    // item is the spacer at the bottom, so anything short clips the last row
+    // rather than compressing gracefully.
+    readonly property int inlineSettingsHeight: controller.showInlineSettings
+        ? Kirigami.Units.gridUnit * 11
+        : 0
+
     implicitWidth: Kirigami.Units.gridUnit * 21
-    implicitHeight: Kirigami.Units.gridUnit * 20
+    implicitHeight: Kirigami.Units.gridUnit * 21 + inlineSettingsHeight
     Layout.minimumWidth: Kirigami.Units.gridUnit * 19
-    Layout.minimumHeight: Kirigami.Units.gridUnit * 18
+    Layout.minimumHeight: Kirigami.Units.gridUnit * 19 + inlineSettingsHeight
     Layout.preferredWidth: implicitWidth
     Layout.preferredHeight: implicitHeight
 
@@ -74,8 +82,21 @@ Item {
         }
 
         Item {
+            id: ring
+
+            // The stroke width the Canvas paints with. Hoisted out of onPaint so
+            // the text below can be sized against the same number instead of
+            // re-deriving it and drifting.
+            readonly property real lineWidth: Math.max(7, width * 0.055)
+            // The stroke is centred on `radius`, so its inner edge sits half a
+            // line width further in: usable diameter is width - 3 * lineWidth.
+            // Text is a rectangle inside a circle, so it cannot use the full
+            // diameter — at the height of a two-line stack the chord is ~96% of
+            // it, and 0.82 keeps the widest line clear of the curve with margin.
+            readonly property real contentWidth: (width - lineWidth * 3) * 0.82
+
             Layout.alignment: Qt.AlignHCenter
-            implicitWidth: Kirigami.Units.gridUnit * 9
+            implicitWidth: Kirigami.Units.gridUnit * 10
             implicitHeight: implicitWidth
 
             Canvas {
@@ -92,7 +113,7 @@ Item {
 
                 onPaint: {
                     const ctx = getContext("2d");
-                    const lineWidth = Math.max(7, width * 0.055);
+                    const lineWidth = ring.lineWidth;
                     const radius = Math.min(width, height) / 2 - lineWidth;
                     const centerX = width / 2;
                     const centerY = height / 2;
@@ -116,24 +137,37 @@ Item {
                 }
             }
 
+            // Both labels are width-constrained and set to shrink rather than
+            // overflow. Without this they size to their content and run straight
+            // through the stroke — "Ready when you are" always did, and
+            // formattedTime does too once the focus interval passes 99 minutes
+            // and the countdown grows a sixth character.
             Column {
                 anchors.centerIn: parent
+                width: ring.contentWidth
                 spacing: Kirigami.Units.smallSpacing
 
                 QQC2.Label {
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
                     text: full.controller.formattedTime
                     color: Kirigami.Theme.textColor
                     font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 3.0
+                    fontSizeMode: Text.HorizontalFit
+                    minimumPixelSize: Kirigami.Theme.defaultFont.pixelSize
                     font.weight: Font.Light
                 }
 
                 QQC2.Label {
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
                     text: full.controller.isRunning
                         ? i18n("Ends %1", full.controller.estimatedFinishTime)
                         : i18n("Ready when you are")
                     color: Kirigami.Theme.disabledTextColor
+                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                    fontSizeMode: Text.HorizontalFit
+                    minimumPixelSize: Math.round(Kirigami.Theme.smallFont.pixelSize * 0.75)
                 }
             }
         }
@@ -277,6 +311,77 @@ Item {
                 onClicked: full.controller.skipInterval()
                 QQC2.ToolTip.visible: hovered
                 QQC2.ToolTip.text: i18n("Move to the next interval")
+            }
+        }
+
+        // The full popup. Off by default -- the compact popup keeps durations in
+        // the config dialog -- but retuning the timer without leaving the popup
+        // is a reasonable thing to want, so it is the user's call rather than
+        // ours. Layouts drop invisible items, so the compact popup pays nothing
+        // for this beyond the two bindings.
+        Kirigami.Separator {
+            Layout.fillWidth: true
+            visible: full.controller.showInlineSettings
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            visible: full.controller.showInlineSettings
+
+            QQC2.Label {
+                text: i18n("Timer settings")
+                font.weight: Font.DemiBold
+            }
+
+            Item { Layout.fillWidth: true }
+
+            QQC2.Label {
+                text: i18n("Changes apply to paused intervals")
+                color: Kirigami.Theme.disabledTextColor
+                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+            }
+        }
+
+        GridLayout {
+            Layout.fillWidth: true
+            visible: full.controller.showInlineSettings
+            columns: 2
+            columnSpacing: Kirigami.Units.largeSpacing
+            rowSpacing: Kirigami.Units.smallSpacing
+
+            QQC2.Label { text: i18n("Focus interval") }
+            DurationEditor {
+                Layout.alignment: Qt.AlignRight
+                value: full.controller.focusMinutes
+                onValueEdited: value => full.controller.setFocusMinutes(value)
+            }
+
+            QQC2.Label { text: i18n("Short break") }
+            DurationEditor {
+                Layout.alignment: Qt.AlignRight
+                value: full.controller.shortBreakMinutes
+                onValueEdited: value => full.controller.setShortBreakMinutes(value)
+            }
+
+            QQC2.Label { text: i18n("Focuses before long break") }
+            // A DurationEditor with the suffix blanked rather than a bare
+            // SpinBox: it keeps the "min" column's width, so this spin box lines
+            // up with the three duration rows instead of sitting a word further
+            // right than all of them.
+            DurationEditor {
+                Layout.alignment: Qt.AlignRight
+                suffix: ""
+                from: 1
+                to: 12
+                value: full.controller.sessionsUntilLongBreak
+                onValueEdited: value => full.controller.setSessionsUntilLongBreak(value)
+            }
+
+            QQC2.Label { text: i18n("Long break") }
+            DurationEditor {
+                Layout.alignment: Qt.AlignRight
+                value: full.controller.longBreakMinutes
+                onValueEdited: value => full.controller.setLongBreakMinutes(value)
             }
         }
 

@@ -13,6 +13,7 @@ KCM.SimpleKCM {
     property alias cfg_sessionsUntilLongBreak: sessionsUntilLongBreak.value
     property alias cfg_autoStartBreaks: autoStartBreaks.checked
     property alias cfg_autoStartFocus: autoStartFocus.checked
+    property alias cfg_showInlineSettings: showInlineSettings.checked
 
     readonly property PresetTable presetTable: PresetTable {}
     // Derived from the four editors below, not from a stored key, and derived
@@ -81,19 +82,29 @@ KCM.SimpleKCM {
             Kirigami.FormData.label: i18n("Short break:")
         }
 
-        QQC2.SpinBox {
+        DurationEditor {
             id: sessionsUntilLongBreak
 
             Kirigami.FormData.label: i18n("Focuses before long break:")
+            // Counts focuses, not minutes, so the suffix is blanked -- but the
+            // column keeps its width so this row stays aligned with the three
+            // duration rows around it.
+            suffix: ""
             from: 1
             to: 12
-            editable: true
         }
 
         DurationEditor {
             id: longBreakMinutes
 
             Kirigami.FormData.label: i18n("Long break:")
+        }
+
+        QQC2.CheckBox {
+            id: showInlineSettings
+
+            Kirigami.FormData.label: i18n("Popup:")
+            text: i18n("Repeat these settings inside the widget popup")
         }
 
         Kirigami.Separator {

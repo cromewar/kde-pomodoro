@@ -17,6 +17,7 @@ PlasmoidItem {
     readonly property string focusDescription: Plasmoid.configuration.focusDescription
     readonly property bool autoStartBreaks: Plasmoid.configuration.autoStartBreaks
     readonly property bool autoStartFocus: Plasmoid.configuration.autoStartFocus
+    readonly property bool showInlineSettings: Plasmoid.configuration.showInlineSettings
 
     readonly property PresetTable presetTable: PresetTable {}
     readonly property var presets: presetTable.list

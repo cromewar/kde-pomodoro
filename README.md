@@ -32,7 +32,7 @@ The installer also copies the widget's notification events into `~/.local/share/
 - Focus, short-break, and long-break phases
 - Estimated finish time for the running interval, shown in the popup and the tooltip in your local 12- or 24-hour format
 - Editable current-focus description in the popup, tooltip, and horizontal panel
-- Focus, short-break, and long-break durations set in the widget settings dialog
+- Focus, short-break, and long-break durations editable directly in the popup, or hidden away in the settings dialog if you prefer a compact popup
 - Configurable number of focus sessions before a long break
 - Built-in interval presets — Classic (25/5/15), Deep work (50/10/30), and Long haul (90/20/30) — switchable from the right-click menu or the settings dialog
 - Start, pause, restart, and skip controls in the popup, mirrored in the right-click menu

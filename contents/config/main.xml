@@ -26,6 +26,12 @@
     <entry name="autoStartFocus" type="Bool">
       <default>false</default>
     </entry>
+    <!-- On by default: the durations are repeated in the popup so the timer can
+         be retuned without a trip to the config dialog. Turn it off for the
+         compact popup, where the durations live in the config dialog only. -->
+    <entry name="showInlineSettings" type="Bool">
+      <default>true</default>
+    </entry>
 
     <!-- Runtime state is persisted so a running timer survives a shell restart. -->
     <entry name="currentPhase" type="String">
